@@ -24,13 +24,15 @@ patches = zeros(patchsize*patchsize, numpatches);
 %  patch corresponding to the pixels in the block (21,21) to (30,30) of
 %  Image 1
 
+insize = size(IMAGES);
 
-
-
-
-
-
-
+for i = 1:numpatches
+    x = randi(insize(1)-patchsize);
+    y = randi(insize(2)-patchsize);
+    img = randi(insize(3));
+    patch = IMAGES(x:x+patchsize-1, y:y+patchsize-1, img);
+    patches(:, i) = patch(:);
+end
 
 
 %% ---------------------------------------------------------------
