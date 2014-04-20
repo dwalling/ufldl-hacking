@@ -29,7 +29,7 @@ beta = 3;            % weight of sparsity penalty term
 %  display a random sample of 200 patches from the dataset
 
 patches = sampleIMAGES;
-display_network(patches(:,randi(size(patches,2),200,1)),8);
+% display_network(patches(:,randi(size(patches,2),200,1)),8);
 
 
 %  Obtain random parameters theta
@@ -75,7 +75,7 @@ theta = initializeParameters(hiddenSize, visibleSize);
 % First, lets make sure your numerical gradient computation is correct for a
 % simple function.  After you have implemented computeNumericalGradient.m,
 % run the following: 
-checkNumericalGradient();
+% checkNumericalGradient();
 
 % Now we can use it to check your cost function and derivative calculations
 % for the sparse autoencoder.  
@@ -89,7 +89,7 @@ disp([numgrad grad]);
 
 % Compare numerically computed gradients with the ones obtained from backpropagation
 diff = norm(numgrad-grad)/norm(numgrad+grad);
-disp(diff); % Should be small. In our implementation, these values are
+disp('here''s the diff'); disp(diff); % Should be small. In our implementation, these values are
             % usually less than 1e-9.
 
             % When you got this working, Congratulations!!! 
@@ -112,7 +112,7 @@ options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
 options.maxIter = 400;	  % Maximum number of iterations of L-BFGS to run 
 options.display = 'on';
 
-
+disp('call minFunc');
 [opttheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
                                    visibleSize, hiddenSize, ...
                                    lambda, sparsityParam, ...

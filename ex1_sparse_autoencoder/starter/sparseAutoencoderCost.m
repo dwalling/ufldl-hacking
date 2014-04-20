@@ -13,6 +13,11 @@ function [cost,grad] = sparseAutoencoderCost(theta, visibleSize, hiddenSize, ...
 % We first convert theta to the (W1, W2, b1, b2) matrix/vector format, so that this 
 % follows the notation convention of the lecture notes. 
 
+assert(visibleSize == size(data, 1))
+assert(2*hiddenSize*visibleSize + hiddenSize + visibleSize == size(theta, 1)); % check size
+
+numSamples = size(data, 2);
+
 W1 = reshape(theta(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
 W2 = reshape(theta(hiddenSize*visibleSize+1:2*hiddenSize*visibleSize), visibleSize, hiddenSize);
 b1 = theta(2*hiddenSize*visibleSize+1:2*hiddenSize*visibleSize+hiddenSize);
@@ -42,23 +47,27 @@ b2grad = zeros(size(b2));
 % the gradient descent update to W1 would be W1 := W1 - alpha * W1grad, and similarly for W2, b1, b2. 
 % 
 
+z2 = W1*data + repmat(b1, 1, numSamples);
+a2 = sigmoid(z2);
 
+z3 = W2*a2 + repmat(b2, 1, numSamples);
+a3 = sigmoid(z3);
 
+sq_err = get_squared_error(a3, data);
+weight_decay = 0.5 * lambda * (sum_sq_W(W1) + sum_sq_W(W2));
+sparsity_penalty = beta * sparsityPenalty(a2, sparsityParam);
 
+cost = sq_err + weight_decay + sparsity_penalty;
 
+% derivative_of_sigmoid(zi) = ai * (1 - ai)
 
+delta_layer_3 = -(data - a3) .* (a3 .* (1 - a3));
+delta_layer_2 = (W2' * delta_layer_3 + beta * repmat(sparsityDerivative(a2, sparsityParam), 1, numSamples)) .* (a2 .* (1 - a2));
 
-
-
-
-
-
-
-
-
-
-
-
+W2grad = (delta_layer_3 * a2'  ) / numSamples + lambda * W2;
+b2grad = (delta_layer_3 * ones(numSamples, 1)) / numSamples;
+W1grad = (delta_layer_2 * data') / numSamples + lambda * W1;
+b1grad = (delta_layer_2 * ones(numSamples, 1)) / numSamples;
 
 %-------------------------------------------------------------------
 % After computing the cost and gradient, we will convert the gradients back
@@ -69,6 +78,17 @@ grad = [W1grad(:) ; W2grad(:) ; b1grad(:) ; b2grad(:)];
 
 end
 
+function spd = sparsityDerivative(a2, rho)
+    rho_hat = mean(a2, 2);
+    spd = -(rho ./ rho_hat) + (1-rho) ./ (1-rho_hat);
+end
+
+function sp = sparsityPenalty(a2, rho)
+    rho_hat = mean(a2, 2);
+    sp = sum(rho * log(rho ./ rho_hat) + (1 - rho) * log((1 - rho) ./ (1 - rho_hat)));
+end
+
+
 %-------------------------------------------------------------------
 % Here's an implementation of the sigmoid function, which you may find useful
 % in your computation of the costs and the gradients.  This inputs a (row or
@@ -77,5 +97,15 @@ end
 function sigm = sigmoid(x)
   
     sigm = 1 ./ (1 + exp(-x));
+end
+
+function sqe = get_squared_error(h, y)
+    err = h - y;
+    sqe = sum(err .* err, 1); % sum of squared errors each example
+    sqe = sum(sqe / 2) / size(y, 2); % 1/2 avg sq err
+end
+
+function ssw = sum_sq_W(W)
+    ssw = sum(sum(W .* W, 1), 2);
 end
 
