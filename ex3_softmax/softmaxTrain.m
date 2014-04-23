@@ -1,4 +1,5 @@
 function [softmaxModel] = softmaxTrain(inputSize, numClasses, lambda, inputData, labels, options)
+
 %softmaxTrain Train a softmax model with the given parameters on the given
 % data. Returns softmaxOptTheta, a vector containing the trained parameters
 % for the model.
@@ -26,7 +27,6 @@ end
 theta = 0.005 * randn(numClasses * inputSize, 1);
 
 % Use minFunc to minimize the function
-addpath minFunc/
 options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
                           % function. Generally, for minFunc to work, you
                           % need a function pointer with two outputs: the

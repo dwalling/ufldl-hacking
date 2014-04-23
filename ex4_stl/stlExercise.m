@@ -1,4 +1,7 @@
 %% CS294A/CS294W Self-taught Learning Exercise
+addpath ../ex1_sparse_autoencoder
+addpath ../ex1_sparse_autoencoder/minFunc
+addpath ../ex3_softmax
 
 %  Instructions
 %  ------------
@@ -30,9 +33,10 @@ maxIter = 400;
 %  We have sorted the data for you in this so that you will not have to
 %  change it.
 
+
 % Load MNIST database files
-mnistData   = loadMNISTImages('mnist/train-images-idx3-ubyte');
-mnistLabels = loadMNISTLabels('mnist/train-labels-idx1-ubyte');
+mnistData   = loadMNISTImages('../mnist/train-images.idx3-ubyte');
+mnistLabels = loadMNISTLabels('../mnist/train-labels.idx1-ubyte');
 
 % Set Unlabeled Set (All Images)
 
@@ -69,14 +73,20 @@ theta = initializeParameters(hiddenSize, inputSize);
 %  Find opttheta by running the sparse autoencoder on
 %  unlabeledTrainingImages
 
-opttheta = theta; 
+options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
+                          % function. Generally, for minFunc to work, you
+                          % need a function pointer with two outputs: the
+                          % function value and the gradient. In our problem,
+                          % sparseAutoencoderCost.m satisfies this.
+options.maxIter = maxIter;	  % Maximum number of iterations of L-BFGS to run 
+options.display = 'on';
 
-
-
-
-
-
-
+disp('call minFunc');
+[opttheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
+                                   inputSize, hiddenSize, ...
+                                   lambda, sparsityParam, ...
+                                   beta, unlabeledData), ...
+                              theta, options);
 
 
 %% -----------------------------------------------------
@@ -110,14 +120,9 @@ softmaxModel = struct;
 % You need to compute softmaxModel using softmaxTrain on trainFeatures and
 % trainLabels
 
-
-
-
-
-
-
-
-
+softmax_lambda = 1e-4;
+softmaxModel = softmaxTrain(hiddenSize, numLabels, softmax_lambda, trainFeatures, ...
+                                trainLabels, options);
 
 %% -----------------------------------------------------
 
@@ -129,18 +134,7 @@ softmaxModel = struct;
 % Compute Predictions on the test set (testFeatures) using softmaxPredict
 % and softmaxModel
 
-
-
-
-
-
-
-
-
-
-
-
-
+pred = softmaxPredict(softmaxModel, testFeatures);
 
 
 %% -----------------------------------------------------
