@@ -51,7 +51,7 @@ z2 = W1*data + repmat(b1, 1, numSamples);
 a2 = sigmoid(z2);
 
 z3 = W2*a2 + repmat(b2, 1, numSamples);
-a3 = sigmoid(z3);
+a3 = z3;
 
 sq_err = get_squared_error(a3, data);
 weight_decay = 0.5 * lambda * (sum_sq_W(W1) + sum_sq_W(W2));
@@ -61,7 +61,7 @@ cost = sq_err + weight_decay + sparsity_penalty;
 
 % derivative_of_sigmoid(zi) = ai * (1 - ai)
 
-delta_layer_3 = -(data - a3) .* (a3 .* (1 - a3));
+delta_layer_3 = -(data - a3);
 delta_layer_2 = (W2' * delta_layer_3 + ...
     beta * repmat(sparsityDerivative(a2, sparsityParam), 1, numSamples) ...
                     ) .* (a2 .* (1 - a2));
@@ -78,4 +78,29 @@ b1grad = (delta_layer_2 * ones(numSamples, 1)) / numSamples;
 
 grad = [W1grad(:) ; W2grad(:) ; b1grad(:) ; b2grad(:)];
 
+end
+
+function spd = sparsityDerivative(a, rho)
+    rho_hat = mean(a, 2);
+    spd = -(rho ./ rho_hat) + (1-rho) ./ (1-rho_hat);
+end
+
+function sp = sparsityPenalty(a, rho)
+    rho_hat = mean(a, 2);
+    sp = sum(rho * log(rho ./ rho_hat) + (1 - rho) * log((1 - rho) ./ (1 - rho_hat)));
+end
+
+function sigm = sigmoid(x)
+  
+    sigm = 1 ./ (1 + exp(-x));
+end
+
+function sqe = get_squared_error(h, y)
+    err = h - y;
+    sqe = sum(err .* err, 1); % sum of squared errors each example
+    sqe = sum(sqe / 2) / size(y, 2); % 1/2 avg sq err
+end
+
+function ssw = sum_sq_W(W)
+    ssw = sum(sum(W .* W, 1), 2);
 end
