@@ -198,7 +198,7 @@ disp('STEP 3 COMPLETE');
 %  10 minutes.
 
 % Add the path to your softmax solution, if necessary
-% addpath /path/to/solution/
+addpath minFunc/
 
 % Setup parameters for softmax
 softmaxLambda = 1e-4;
